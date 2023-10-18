@@ -17,6 +17,9 @@ y = dataset[:,2]
 x = torch.tensor(x, dtype=torch.float32)
 y = torch.tensor(y, dtype=torch.float32).reshape(-1, 1)
 
+print(x.shape)
+
+print("#########")
 print(len(x))
 
 class Fourier(nn.Module):
@@ -38,9 +41,11 @@ class Classifier(nn.Module):
         super().__init__()
         # define neural network layers
         self.model = nn.Sequential(
-            nn.Linear(10, 100),
+            nn.Linear(10, 10),
             nn.ReLU(),
-            nn.Linear(100, 1),
+            nn.Linear(10, 10),
+            nn.ReLU(),
+            nn.Linear(10, 1),
             nn.Sigmoid()
         )
         # create loss function
@@ -101,6 +106,9 @@ image_container = canvas.create_image((WIDTH/2, HEIGHT/2), image=tkImage, state=
 
 F = Fourier()
 
+print(F.forward(x).shape)
+
+print("#########")
 # create neural network
 
 C = Classifier()
@@ -114,8 +122,13 @@ def start():
         print('training epoch', i+1, "of", epochs)
         for j in range(0, len(x)):
             rnd = random.randint(0, len(x)-1)
-            C.train(F.forward(x[rnd]), y[rnd])
-            new_color = C.forward(x[rnd]).float()*255
+            batch_x = torch.unsqueeze(x[rnd], 0)
+            # print("batch X:")
+            # print(batch_x)
+            batch_y = torch.unsqueeze(y[rnd], 0)
+            C.train(F.forward(batch_x), batch_y)
+            # C.train(F.forward(x[rnd]), y[rnd])
+            new_color = C.forward(F.forward(x[rnd])).float()*255
             new_color = int(new_color)
             red, green, blue = new_color ,new_color, new_color
             dctx.point((x[rnd][0].int().item(),x[rnd][1].int().item()), fill="#%02x%02x%02x" % (red, green, blue))
